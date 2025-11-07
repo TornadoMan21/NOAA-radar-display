@@ -1,0 +1,329 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+    margin-bottom: 15px;
+}
+
+.controls {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.station-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+}
+
+.station-selector label {
+    font-weight: 500;
+    white-space: nowrap;
+    color: white;
+}
+
+.station-selector select {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 15px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    min-width: 200px;
+    cursor: pointer;
+}
+
+.station-selector select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.current-station {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-left: 10px;
+    color: white;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #48bb78;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+main {
+    padding: 30px;
+}
+
+.radar-container {
+    background: #f7fafc;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.radar-wrapper {
+    position: relative;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#map {
+    width: 100%;
+    height: 70vh;
+    min-height: 400px;
+    z-index: 1;
+}
+
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.2em;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px 40px;
+    border-radius: 8px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+}
+
+.btn-refresh {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-refresh:hover {
+    background: #3182ce;
+}
+
+.last-update {
+    color: #718096;
+    font-size: 0.9em;
+}
+
+.radar-data-time {
+    color: #2d3748;
+    font-size: 0.9em;
+    font-weight: 500;
+    padding: 8px 16px;
+    background: #f0fff4;
+    border-radius: 20px;
+    border: 1px solid #9ae6b4;
+}
+
+.radar-timestamp-history {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 8px 0;
+}
+
+.radar-timestamp-history .history-title {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: #742a2a;
+    margin-bottom: 8px;
+}
+
+.radar-timestamp-history .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #fed7d7;
+    font-size: 0.85em;
+}
+
+.radar-timestamp-history .history-item:last-child {
+    border-bottom: none;
+}
+
+.radar-timestamp-history .history-time {
+    color: #4a5568;
+}
+
+.radar-timestamp-history .history-diff {
+    color: #2b6cb0;
+    font-weight: 500;
+}
+
+.radar-timestamp-history .history-position {
+    color: #2d3748;
+    font-weight: 500;
+    min-width: 70px;
+    text-align: right;
+}
+
+.countdown {
+    color: #4299e1;
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 8px 16px;
+    background: #ebf8ff;
+    border-radius: 20px;
+    border: 1px solid #bee3f8;
+}
+
+.auto-refresh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.info-panel {
+    background: #edf2f7;
+    padding: 25px;
+    border-radius: 10px;
+}
+
+.info-panel h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.info-panel ul {
+    list-style: none;
+    margin-bottom: 25px;
+}
+
+.info-panel li {
+    padding: 8px 0;
+    border-bottom: 1px solid #cbd5e0;
+}
+
+.info-panel li:last-child {
+    border-bottom: none;
+}
+
+.legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+}
+
+.legend-item .color {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    border: 2px solid #cbd5e0;
+}
+
+footer {
+    background: #2d3748;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+    
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-refresh {
+        width: 100%;
+    }
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOAA {{ station }} Radar Display</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌧️ NOAA Weather Radar</h1>
+            <p class="subtitle">Live Radar Imagery</p>
+            <div class="controls">
+                <div class="station-selector">
+                    <label for="radar-station">Station:</label>
+                    <select id="radar-station">
+                        <option value="">Loading...</option>
+                    </select>
+                    <span class="current-station" id="current-station-info"></span>
+                </div>
+            </div>
+            <div class="status" id="status">
+                <span class="status-indicator"></span>
+                <span id="status-text">Checking status...</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="radar-container">
+                <div class="radar-wrapper">
+                    <div id="map"></div>
+                    <div class="loading" id="loading">Loading radar data...</div>
+                </div>
+                
+                <div class="controls">
+                    <button onclick="refreshRadar()" class="btn-refresh">
+                        🔄 Refresh Radar
+                    </button>
+                    <div class="last-update">
+                        Last updated: <span id="last-update">Never</span>
+                    </div>
+                    <div class="radar-data-time">
+                        Radar data from: <span id="radar-data-time">Loading...</span>
+                    </div>
+                    <div class="radar-timestamp-history" id="radar-timestamp-history">
+                        <div class="history-title">Recent Radar Updates:</div>
+                        <div class="history-content" id="history-content">Loading history...</div>
+                    </div>
+                    <div class="countdown" id="countdown"></div>
+                    <label class="auto-refresh">
+                        <input type="checkbox" id="auto-refresh" checked>
+                        Auto-refresh every 1 min (learning...)
+                    </label>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h3>ℹ️ About This Radar</h3>
+                <ul>
+                    <li><strong>Station:</strong> {{ station }}</li>
+                    <li><strong>Data Source:</strong> NOAA/National Weather Service</li>
+                    <li><strong>Update Frequency:</strong> Every 5 minutes</li>
+                    <li><strong>Coverage:</strong> ~230 mile radius</li>
+                </ul>
+
+                <h3>🎨 Radar Legend</h3>
+                <div class="legend">
+                    <div class="legend-item"><span class="color" style="background: #40ffff;"></span> Light Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #00d800;"></span> Moderate Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ffff00;"></span> Heavy Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ff0000;"></span> Very Heavy Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ff00ff;"></span> Severe Weather</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Data provided by NOAA/National Weather Service | For educational purposes</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
