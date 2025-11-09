@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOAA {{ station }} Radar Display</title>
+    <title>Extreme Weather's Radar Program</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <!-- Leaflet CSS -->
     <link
@@ -16,15 +16,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>🌧️ NOAA Weather Radar</h1>
+            <h1>�️ Extreme Weather's Radar Program</h1>
             <p class="subtitle">Live Radar Imagery</p>
             <div class="controls">
-                <div class="station-selector">
-                    <label for="radar-station">Station:</label>
-                    <select id="radar-station">
-                        <option value="">Loading...</option>
-                    </select>
-                    <span class="current-station" id="current-station-info"></span>
+                <div class="current-station-display">
+                    <label>Current Station:</label>
+                    <span class="station-info" id="current-station-info"></span>
+                    <span class="station-help">💡 Click a radar station on the map to switch</span>
                 </div>
                 <div class="layer-selector">
                     <label for="weather-layer">Layer:</label>

@@ -30,11 +30,12 @@ WEATHER_LAYERS = {
         'legend_url': None
     },
     'local_reflectivity': {
-        'name': 'Local Radar (KLWX)',
-        'description': 'Local Washington DC area radar reflectivity',
-        'layer': 'conus:KLWX_BREF',
+        'name': 'Local Radar',
+        'description': 'Local radar station reflectivity',
+        'layer': 'conus:{station}_BREF',
         'service': 'conus',
-        'legend_url': None
+        'legend_url': None,
+        'dynamic_station': True
     }
 }
 

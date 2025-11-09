@@ -8,6 +8,9 @@ let currentBounds = null;
 let currentRefreshRate = 60000; // Start with 1 minute (60000ms)
 let adaptiveRefreshEnabled = true;
 let radarUpdatePattern = [];
+let radarStations = []; // Store all radar stations data
+let stationMarkers = []; // Store all station markers
+let currentStationId = null;
 
 // Initialize the map and overlay on DOM ready
 window.addEventListener('DOMContentLoaded', async function() {
@@ -17,11 +20,16 @@ window.addEventListener('DOMContentLoaded', async function() {
     await loadCurrentStation();
     await loadCurrentLayer();
     await initMapWithRadar();
+    
+    // Add markers after everything is fully loaded
+    if (map && radarStations && radarStations.length > 0) {
+        addRadarStationMarkers();
+    }
+    
     checkRadarStatus();
     updateRadarDataTime();
     updateRadarTimestampHistory();
     setupAutoRefreshEventListener(); // Set up event listener
-    setupStationSelectorEventListener(); // Set up station selector
     setupLayerSelectorEventListener(); // Set up layer selector
     startAutoRefresh();
 });
@@ -29,20 +37,10 @@ window.addEventListener('DOMContentLoaded', async function() {
 async function loadRadarStations() {
     try {
         const response = await fetch('/api/radar/stations');
-        const stations = await response.json();
-        
-        const select = document.getElementById('radar-station');
-        select.innerHTML = '';
-        
-        stations.forEach(station => {
-            const option = document.createElement('option');
-            option.value = station.id;
-            option.textContent = `${station.id} - ${station.name}, ${station.state}`;
-            select.appendChild(option);
-        });
+        radarStations = await response.json();
+        console.log('Loaded radar stations:', radarStations.length);
     } catch (error) {
         console.error('Error loading radar stations:', error);
-        document.getElementById('radar-station').innerHTML = '<option value="">Error loading stations</option>';
     }
 }
 
@@ -51,7 +49,7 @@ async function loadCurrentStation() {
         const response = await fetch('/api/radar/current-station');
         const station = await response.json();
         
-        document.getElementById('radar-station').value = station.station_id;
+        currentStationId = station.station_id;
         updateStationInfo(station);
     } catch (error) {
         console.error('Error loading current station:', error);
@@ -60,66 +58,287 @@ async function loadCurrentStation() {
 
 function updateStationInfo(station) {
     const infoElement = document.getElementById('current-station-info');
-    infoElement.textContent = `${station.name}, ${station.state}`;
+    infoElement.textContent = `${station.station_id} - ${station.name}, ${station.state}`;
     document.title = `NOAA ${station.station_id} Radar Display`;
+    
+    // Update marker states
+    updateStationMarkers();
 }
 
-function setupStationSelectorEventListener() {
-    document.getElementById('radar-station').addEventListener('change', async function(e) {
-        const stationId = e.target.value;
-        if (!stationId) return;
-        
-        try {
-            // Show loading state
-            const statusElement = document.getElementById('status-text');
-            const originalText = statusElement.textContent;
-            statusElement.textContent = 'Switching radar station...';
-            
-            // Switch station on backend
-            const response = await fetch('/api/radar/station', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ station_id: stationId })
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Server responded with ${response.status}: ${errorText}`);
-            }
-            
-            const station = await response.json();
-            updateStationInfo(station);
-            
-            // Reinitialize map with new bounds
-            await initMapWithRadar();
-            
-            // Reset refresh system for new station
-            radarUpdatePattern = [];
-            currentRefreshRate = 60000; // Reset to 1 minute
-            updateRefreshRateDisplay();
-            
-            // Refresh radar data immediately
-            await addOrUpdateRadarOverlay();
-            
-            statusElement.textContent = originalText;
-            
-        } catch (error) {
-            console.error('Error switching radar station:', error);
-            console.error('Error details:', error.message, error.stack);
-            
-            // Try to get more specific error information
-            if (error.response) {
-                console.error('Response status:', error.response.status);
-                console.error('Response text:', await error.response.text().catch(() => 'Could not read response text'));
-            }
-            
-            alert(`Failed to switch radar station: ${error.message || 'Unknown error'}. Please check the console for details.`);
-            // Reset to previous selection
-            await loadCurrentStation();
+async function switchToStation(stationId) {
+    console.log(`=== SWITCH TO STATION CALLED ===`);
+    console.log(`switchToStation called with: ${stationId}`);
+    console.log(`Current station: ${currentStationId}`);
+    console.log(`Type of stationId: ${typeof stationId}`);
+    console.log(`Type of currentStationId: ${typeof currentStationId}`);
+    
+    if (!stationId || stationId === currentStationId) {
+        console.log(`Skipping switch: stationId=${stationId}, currentStationId=${currentStationId}`);
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const statusElement = document.getElementById('status-text');
+        if (!statusElement) {
+            console.error('Status element not found!');
+            return;
         }
+        
+        const originalText = statusElement.textContent;
+        statusElement.textContent = 'Switching radar station...';
+        
+        console.log(`Switching from ${currentStationId} to ${stationId}`);
+        console.log('Making fetch request to /api/radar/station');
+        
+        // Switch station on backend
+        const response = await fetch('/api/radar/station', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ station_id: stationId })
+        });
+        
+        console.log('Response received:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server responded with ${response.status}: ${errorText}`);
+        }
+        
+        const station = await response.json();
+        console.log('Station data received:', station);
+        
+        currentStationId = stationId;
+        updateStationInfo(station);
+        
+        console.log('Reinitializing map...');
+        // Reinitialize map with new bounds
+        await initMapWithRadar();
+        
+        // Reset refresh system for new station
+        radarUpdatePattern = [];
+        currentRefreshRate = 60000; // Reset to 1 minute
+        updateRefreshRateDisplay();
+        
+        console.log('Refreshing radar data...');
+        // Refresh radar data immediately
+        await addOrUpdateRadarOverlay();
+        
+        statusElement.textContent = originalText;
+        
+        console.log('Successfully switched to station:', stationId);
+        console.log(`=== STATION SWITCH COMPLETE ===`);
+        
+    } catch (error) {
+        console.error('=== ERROR IN SWITCH TO STATION ===');
+        console.error('Error switching radar station:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Try to get more specific error information
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response text:', await error.response.text().catch(() => 'Could not read response text'));
+        }
+        
+        alert(`Failed to switch radar station: ${error.message || 'Unknown error'}. Please check the console for details.`);
+        // Reset to previous selection
+        await loadCurrentStation();
+    }
+}
+
+// Make function globally available
+console.log('Making switchToStation globally available');
+window.switchToStation = switchToStation;
+
+// Test that the function is accessible
+console.log('Testing global switchToStation function...');
+console.log('Type of window.switchToStation:', typeof window.switchToStation);
+console.log('switchToStation function:', window.switchToStation);
+
+// Add a simple test function that can be called from console
+window.testStationSwitch = function(stationId = 'KMUX') {
+    console.log(`Testing station switch to ${stationId}...`);
+    if (typeof window.switchToStation === 'function') {
+        window.switchToStation(stationId);
+    } else {
+        console.error('switchToStation function not available!');
+    }
+};
+
+function addRadarStationMarkers() {
+    console.log('addRadarStationMarkers called');
+    console.log('Map object:', map);
+    console.log('Radar stations:', radarStations ? radarStations.length : 'null');
+    
+    if (!map || !radarStations || radarStations.length === 0) {
+        console.log('Cannot add station markers: missing map or stations data');
+        console.log('Map exists:', !!map);
+        console.log('Stations loaded:', radarStations ? radarStations.length : 'null');
+        return;
+    }
+    
+    // Clear existing markers
+    clearStationMarkers();
+    console.log('Cleared existing markers');
+    
+    radarStations.forEach((station, index) => {
+        console.log(`Adding marker for ${station.id} - ${station.name}`);
+        
+        // Create custom marker with proper event handling
+        const markerDiv = L.divIcon({
+            className: 'radar-station-marker',
+            html: `<div class="marker-inner" data-station="${station.id}" title="${station.id} - ${station.name}"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+        
+        // Create marker with enhanced options
+        const marker = L.marker([station.lat, station.lon], { 
+            icon: markerDiv,
+            interactive: true,
+            bubblingMouseEvents: false,
+            zIndexOffset: 1000,
+            title: `${station.id} - ${station.name}`,
+            keyboard: true,
+            riseOnHover: true
+        });
+        console.log(`Created marker ${index} for ${station.id} at ${station.lat}, ${station.lon}`);
+        
+        // Create popup content
+        const popupContent = createStationPopup(station);
+        marker.bindPopup(popupContent);
+        
+        // Add click handler with enhanced debugging
+        marker.on('click', function(e) {
+            console.log(`=== MARKER CLICKED ===`);
+            console.log(`Station: ${station.id} - ${station.name}`);
+            console.log('Event object:', e);
+            console.log('Current station ID:', currentStationId);
+            
+            // Stop event propagation
+            if (e && e.originalEvent) {
+                e.originalEvent.stopPropagation();
+                e.originalEvent.preventDefault();
+            }
+            L.DomEvent.stopPropagation(e);
+            
+            // Always close popup first
+            marker.closePopup();
+            
+            if (station.id !== currentStationId) {
+                console.log(`Switching from ${currentStationId} to ${station.id}`);
+                try {
+                    // Provide immediate feedback
+                    console.log('Calling switchToStation...');
+                    if (typeof window.switchToStation === 'function') {
+                        window.switchToStation(station.id);
+                    } else {
+                        throw new Error('switchToStation function not available');
+                    }
+                } catch (error) {
+                    console.error('Error in switchToStation:', error);
+                    alert(`Error switching to station ${station.id}: ${error.message}`);
+                }
+            } else {
+                console.log(`Already on station ${station.id}`);
+                alert(`Already viewing station ${station.id} - ${station.name}`);
+            }
+        });
+        
+        // Add DOM event handler as backup
+        marker.on('add', function() {
+            const markerElement = this._icon;
+            if (markerElement) {
+                console.log(`Adding DOM click handler for ${station.id}`);
+                
+                // Add direct DOM click handler
+                markerElement.addEventListener('click', function(domEvent) {
+                    console.log(`=== DOM CLICK ===`);
+                    console.log(`DOM click on ${station.id}`);
+                    
+                    domEvent.preventDefault();
+                    domEvent.stopPropagation();
+                    
+                    if (station.id !== currentStationId) {
+                        try {
+                            window.switchToStation(station.id);
+                        } catch (error) {
+                            console.error('DOM click error:', error);
+                            alert(`Error: ${error.message}`);
+                        }
+                    }
+                }, true); // Use capture phase
+                
+                // Make sure the element is clickable
+                markerElement.style.pointerEvents = 'all';
+                markerElement.style.cursor = 'pointer';
+                markerElement.style.zIndex = '1000';
+            }
+        });
+        
+        // Add mouseover event for extra feedback
+        marker.on('mouseover', function(e) {
+            console.log(`Mouse over station: ${station.id}`);
+        });
+        
+        // Add to map
+        marker.addTo(map);
+        stationMarkers.push({
+            marker: marker,
+            station: station
+        });
     });
+    
+    // Update marker states
+    updateStationMarkers();
+    
+    console.log(`Added ${stationMarkers.length} radar station markers to map`);
+}
+
+function createStationPopup(station) {
+    const isCurrentStation = station.id === currentStationId;
+    
+    return `
+        <div class="station-popup">
+            <h3>${station.id} - ${station.name}</h3>
+            <p><strong>State:</strong> ${station.state}</p>
+            <p><strong>Coordinates:</strong> ${station.lat.toFixed(3)}, ${station.lon.toFixed(3)}</p>
+            ${isCurrentStation ? 
+                '<div class="current-indicator">🎯 Current Station</div>' : 
+                `<button class="switch-btn" onclick="switchToStation('${station.id}')">Switch to this station</button>`
+            }
+        </div>
+    `;
+}
+
+function updateStationMarkers() {
+    stationMarkers.forEach(({ marker, station }) => {
+        const markerElement = marker.getElement();
+        if (markerElement) {
+            // Remove existing classes
+            markerElement.classList.remove('active');
+            
+            // Add active class to current station
+            if (station.id === currentStationId) {
+                markerElement.classList.add('active');
+            }
+        }
+        
+        // Update popup content
+        const popupContent = createStationPopup(station);
+        marker.getPopup().setContent(popupContent);
+    });
+}
+
+function clearStationMarkers() {
+    stationMarkers.forEach(({ marker }) => {
+        map.removeLayer(marker);
+    });
+    stationMarkers = [];
 }
 
 async function loadWeatherLayers() {

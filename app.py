@@ -209,22 +209,24 @@ def build_wms_url(layer_id=None):
     else:  # conus
         base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
     
-    # Use MRMS composite reflectivity with WMS 1.1.1 (lon,lat axis order) and latest time
+    # Handle dynamic station replacement for local radar layers
+    layer_name = layer_config['layer']
+    if layer_config.get('dynamic_station', False):
+        layer_name = layer_name.replace('{station}', RADAR_STATION)
+    
+    # Simplified parameters - remove TIME and format_options that might cause issues
     params = {
         "service": "WMS",
         "request": "GetMap",
         "version": "1.1.1",
-        "layers": layer_config['layer'],
+        "layers": layer_name,
         "format": "image/png",
         "transparent": "true",
         "width": "700",
         "height": "600",
         "srs": "EPSG:4326",
         "bbox": bbox,
-        "TIME": "latest",
-        "bgcolor": "0x00000000",
-        "styles": "",
-        "format_options": "antialiasing:full"
+        "bgcolor": "0x00000000"
     }
     from urllib.parse import urlencode
     return f"{base}?{urlencode(params)}"
@@ -245,20 +247,24 @@ def build_wms_url_130(layer_id=None):
     else:  # conus
         base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
     
+    # Handle dynamic station replacement for local radar layers
+    layer_name = layer_config['layer']
+    if layer_config.get('dynamic_station', False):
+        layer_name = layer_name.replace('{station}', RADAR_STATION)
+    
+    # Simplified parameters
     params = {
         "service": "WMS",
         "request": "GetMap",
         "version": "1.3.0",
-        "layers": layer_config['layer'],
+        "layers": layer_name,
         "format": "image/png",
         "transparent": "true",
         "width": "700",
         "height": "600",
         "crs": "EPSG:4326",
         "bbox": bbox,
-        "TIME": "latest",
-        "bgcolor": "0x00000000",
-        "styles": "",
+        "bgcolor": "0x00000000"
     }
     from urllib.parse import urlencode
     return f"{base}?{urlencode(params)}"
@@ -458,6 +464,11 @@ def get_radar_image():
         # Get layer parameter from query string if provided
         layer_id = request.args.get('layer', current_weather_layer)
         app.logger.info(f"Fetching radar image for layer: {layer_id} (current: {current_weather_layer})")
+        
+        # Validate that the requested layer exists
+        if layer_id not in WEATHER_LAYERS:
+            app.logger.warning(f"Invalid layer requested: {layer_id}, using default: {current_weather_layer}")
+            layer_id = current_weather_layer
         
         # Fetch with fallbacks using specified layer
         content, used_url = fetch_radar_image_bytes(layer_id)

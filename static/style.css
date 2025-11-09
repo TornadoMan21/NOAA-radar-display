@@ -47,7 +47,7 @@ header h1 {
     gap: 20px;
 }
 
-.station-selector {
+.current-station-display {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -57,19 +57,23 @@ header h1 {
     backdrop-filter: blur(10px);
 }
 
-.station-selector label {
+.current-station-display label {
     font-weight: 500;
     white-space: nowrap;
     color: white;
 }
 
-.station-selector select {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 15px;
-    background: white;
+.station-info {
     font-size: 0.9em;
-    min-width: 120px;
+    color: white;
+    font-weight: 600;
+    min-width: 150px;
+}
+
+.station-help {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
 }
 
 .layer-selector {
@@ -171,6 +175,7 @@ main {
     height: 70vh;
     min-height: 400px;
     z-index: 1;
+    touch-action: pan-x pan-y pinch-zoom;
 }
 
 .loading {
@@ -348,6 +353,111 @@ footer {
     opacity: 0.8;
 }
 
+/* Radar Station Markers */
+.radar-station-marker {
+    width: 20px !important;
+    height: 20px !important;
+    pointer-events: all !important;
+    touch-action: manipulation !important;
+    z-index: 1000 !important;
+    background: none !important;
+    border: none !important;
+}
+
+.radar-station-marker .marker-inner {
+    width: 20px;
+    height: 20px;
+    background: #ff6b6b;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    pointer-events: all;
+    touch-action: manipulation;
+    position: relative;
+    z-index: 1001;
+}
+
+.radar-station-marker:hover .marker-inner,
+.radar-station-marker .marker-inner:hover {
+    width: 24px;
+    height: 24px;
+    background: #ff5252;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin: -2px;
+}
+
+.radar-station-marker.active .marker-inner {
+    width: 24px;
+    height: 24px;
+    background: #4caf50;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.6);
+    animation: pulse-active 2s infinite;
+    margin: -2px;
+}
+
+@keyframes pulse-active {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.6);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.8);
+    }
+}
+
+/* Station popup styles */
+.station-popup {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-width: 200px;
+}
+
+.station-popup h3 {
+    margin: 0 0 8px 0;
+    color: #2d3748;
+    font-size: 1.1em;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 5px;
+}
+
+.station-popup p {
+    margin: 4px 0;
+    color: #4a5568;
+    font-size: 0.9em;
+}
+
+.station-popup .switch-btn {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 8px;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.station-popup .switch-btn:hover {
+    background: #3182ce;
+}
+
+.station-popup .current-indicator {
+    background: #48bb78;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 1.8em;
@@ -360,5 +470,9 @@ footer {
     
     .btn-refresh {
         width: 100%;
+    }
+    
+    .station-help {
+        display: none;
     }
 }
