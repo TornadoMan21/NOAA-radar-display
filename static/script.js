@@ -13,13 +13,16 @@ let radarUpdatePattern = [];
 window.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('loading').style.display = 'block';
     await loadRadarStations();
+    await loadWeatherLayers();
     await loadCurrentStation();
+    await loadCurrentLayer();
     await initMapWithRadar();
     checkRadarStatus();
     updateRadarDataTime();
     updateRadarTimestampHistory();
     setupAutoRefreshEventListener(); // Set up event listener
     setupStationSelectorEventListener(); // Set up station selector
+    setupLayerSelectorEventListener(); // Set up layer selector
     startAutoRefresh();
 });
 
@@ -115,6 +118,100 @@ function setupStationSelectorEventListener() {
             alert(`Failed to switch radar station: ${error.message || 'Unknown error'}. Please check the console for details.`);
             // Reset to previous selection
             await loadCurrentStation();
+        }
+    });
+}
+
+async function loadWeatherLayers() {
+    try {
+        const response = await fetch('/api/weather/layers');
+        const layers = await response.json();
+        
+        const select = document.getElementById('weather-layer');
+        select.innerHTML = ''; // Clear loading option
+        
+        layers.forEach(layer => {
+            const option = document.createElement('option');
+            option.value = layer.id;
+            option.textContent = layer.name;
+            option.title = layer.description; // Tooltip with description
+            if (layer.is_current) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+        
+        console.log('Loaded weather layers:', layers.length);
+    } catch (error) {
+        console.error('Failed to load weather layers:', error);
+        document.getElementById('weather-layer').innerHTML = '<option value="">Error loading layers</option>';
+    }
+}
+
+async function loadCurrentLayer() {
+    try {
+        const response = await fetch('/api/weather/current-layer');
+        const layer = await response.json();
+        
+        const layerInfo = document.getElementById('current-layer-info');
+        if (layerInfo) {
+            layerInfo.textContent = layer.description;
+            layerInfo.title = `Service: ${layer.service}, Layer: ${layer.layer}`;
+        }
+        
+        console.log('Current layer:', layer);
+    } catch (error) {
+        console.error('Failed to load current layer:', error);
+    }
+}
+
+function setupLayerSelectorEventListener() {
+    const select = document.getElementById('weather-layer');
+    
+    select.addEventListener('change', async function(e) {
+        const layerId = e.target.value;
+        if (!layerId) return;
+        
+        console.log('Switching to weather layer:', layerId);
+        
+        try {
+            const response = await fetch('/api/weather/layer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    layer_id: layerId
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`);
+            }
+            
+            const result = await response.json();
+            console.log('Layer switched successfully:', result);
+            
+            // Update current layer info
+            const layerInfo = document.getElementById('current-layer-info');
+            if (layerInfo) {
+                layerInfo.textContent = result.description;
+                layerInfo.title = `Service: ${result.service}, Layer: ${result.layer}`;
+            }
+            
+            // Refresh the radar image with new layer
+            await addOrUpdateRadarOverlay();
+            
+            console.log('Weather layer switched to:', result.name);
+            
+        } catch (error) {
+            console.error('Error switching weather layer:', error);
+            console.error('Error details:', error.message, error.stack);
+            
+            alert(`Failed to switch weather layer: ${error.message || 'Unknown error'}. Please check the console for details.`);
+            // Reset to previous selection
+            await loadCurrentLayer();
         }
     });
 }

@@ -10,6 +10,7 @@ from PIL import Image
 import logging
 import xml.etree.ElementTree as ET
 import re
+from weather_layers import WEATHER_LAYERS, CURRENT_LAYER
 try:
     from zoneinfo import ZoneInfo
     TIMEZONE_SUPPORT = True
@@ -171,6 +172,9 @@ RADAR_STATIONS = {
 # Current radar station configuration
 RADAR_STATION = "KCLE"  # Cleveland, Ohio radar station
 
+# Current weather layer selection
+current_weather_layer = CURRENT_LAYER
+
 # Get current radar coordinates from database
 def get_radar_coords():
     station = RADAR_STATIONS.get(RADAR_STATION, RADAR_STATIONS['KCLE'])
@@ -190,15 +194,27 @@ def build_bbox(center_lat=None, center_lon=None, lat_span=5.0, lon_span=6.0):
     lon_max = center_lon + lon_span / 2.0
     return lon_min, lat_min, lon_max, lat_max
 
-def build_wms_url():
+def build_wms_url(layer_id=None):
+    if layer_id is None:
+        layer_id = current_weather_layer
+    
+    layer_config = WEATHER_LAYERS.get(layer_id, WEATHER_LAYERS['reflectivity'])
+    
     lon_min, lat_min, lon_max, lat_max = build_bbox()
     bbox = f"{lon_min},{lat_min},{lon_max},{lat_max}"
+    
+    # Select base URL based on service
+    if layer_config['service'] == 'mrms':
+        base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
+    else:  # conus
+        base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
+    
     # Use MRMS composite reflectivity with WMS 1.1.1 (lon,lat axis order) and latest time
     params = {
         "service": "WMS",
         "request": "GetMap",
         "version": "1.1.1",
-        "layers": "mrms:Reflectivity_Composite_1km",
+        "layers": layer_config['layer'],
         "format": "image/png",
         "transparent": "true",
         "width": "700",
@@ -210,19 +226,30 @@ def build_wms_url():
         "styles": "",
         "format_options": "antialiasing:full"
     }
-    base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
     from urllib.parse import urlencode
     return f"{base}?{urlencode(params)}"
 
-def build_wms_url_130():
+def build_wms_url_130(layer_id=None):
     """WMS 1.3.0 variant (lat,lon axis order for EPSG:4326)."""
+    if layer_id is None:
+        layer_id = current_weather_layer
+    
+    layer_config = WEATHER_LAYERS.get(layer_id, WEATHER_LAYERS['reflectivity'])
+    
     lon_min, lat_min, lon_max, lat_max = build_bbox()
     bbox = f"{lat_min},{lon_min},{lat_max},{lon_max}"
+    
+    # Select base URL based on service
+    if layer_config['service'] == 'mrms':
+        base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
+    else:  # conus
+        base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
+    
     params = {
         "service": "WMS",
         "request": "GetMap",
         "version": "1.3.0",
-        "layers": "mrms:Reflectivity_Composite_1km",
+        "layers": layer_config['layer'],
         "format": "image/png",
         "transparent": "true",
         "width": "700",
@@ -233,7 +260,6 @@ def build_wms_url_130():
         "bgcolor": "0x00000000",
         "styles": "",
     }
-    base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
     from urllib.parse import urlencode
     return f"{base}?{urlencode(params)}"
 
@@ -635,6 +661,59 @@ def get_current_station():
         'state': station_info['state'],
         'lat': station_info['lat'],
         'lon': station_info['lon']
+    })
+
+@app.route('/api/weather/layers')
+def get_weather_layers():
+    """Get list of available weather layers"""
+    layers = []
+    for layer_id, layer_config in WEATHER_LAYERS.items():
+        layers.append({
+            'id': layer_id,
+            'name': layer_config['name'],
+            'description': layer_config['description'],
+            'service': layer_config['service'],
+            'layer': layer_config['layer'],
+            'legend_url': layer_config.get('legend_url'),
+            'is_current': layer_id == current_weather_layer
+        })
+    return jsonify(layers)
+
+@app.route('/api/weather/layer', methods=['POST'])
+def set_weather_layer():
+    """Switch to a different weather layer"""
+    global current_weather_layer
+    
+    data = request.get_json()
+    layer_id = data.get('layer_id', '')
+    
+    if layer_id not in WEATHER_LAYERS:
+        return jsonify({'error': 'Invalid weather layer'}), 400
+    
+    # Update current layer
+    current_weather_layer = layer_id
+    layer_config = WEATHER_LAYERS[layer_id]
+    
+    return jsonify({
+        'success': True,
+        'layer_id': layer_id,
+        'name': layer_config['name'],
+        'description': layer_config['description'],
+        'service': layer_config['service'],
+        'layer': layer_config['layer']
+    })
+
+@app.route('/api/weather/current-layer')
+def get_current_layer():
+    """Get current weather layer information"""
+    layer_config = WEATHER_LAYERS.get(current_weather_layer, WEATHER_LAYERS['reflectivity'])
+    return jsonify({
+        'layer_id': current_weather_layer,
+        'name': layer_config['name'],
+        'description': layer_config['description'],
+        'service': layer_config['service'],
+        'layer': layer_config['layer'],
+        'legend_url': layer_config.get('legend_url')
     })
 
 @app.route('/api/radar/url')
