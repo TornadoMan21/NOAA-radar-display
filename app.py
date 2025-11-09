@@ -302,11 +302,11 @@ def _try_fetch(url: str, session: requests.Session) -> bytes | None:
         app.logger.error(f"Fetch failed: {e}")
         return None
 
-def fetch_radar_image_bytes() -> tuple[bytes | None, str | None]:
+def fetch_radar_image_bytes(layer_id=None) -> tuple[bytes | None, str | None]:
     session = requests.Session()
     candidates = [
-        ("mrms_wms_111", build_wms_url()),
-        ("mrms_wms_130", build_wms_url_130()),
+        ("mrms_wms_111", build_wms_url(layer_id)),
+        ("mrms_wms_130", build_wms_url_130(layer_id)),
         ("conus_bref", build_conus_bref_url()),
     ]
     for name, url in candidates:
@@ -455,8 +455,12 @@ def index():
 def get_radar_image():
     """Fetch the latest radar image from NOAA"""
     try:
-        # Fetch with fallbacks
-        content, used_url = fetch_radar_image_bytes()
+        # Get layer parameter from query string if provided
+        layer_id = request.args.get('layer', current_weather_layer)
+        app.logger.info(f"Fetching radar image for layer: {layer_id} (current: {current_weather_layer})")
+        
+        # Fetch with fallbacks using specified layer
+        content, used_url = fetch_radar_image_bytes(layer_id)
         if not content:
             raise RuntimeError("Failed to fetch radar image from all sources")
         app.logger.info(f"Serving radar image from: {used_url}")
@@ -482,7 +486,7 @@ def radar_status():
     """Check radar data availability"""
     try:
         # Use same fetcher to determine availability
-        content, used_url = fetch_radar_image_bytes()
+        content, used_url = fetch_radar_image_bytes(current_weather_layer)
         status = 'online' if content else 'offline'
         
         # Try to get actual radar data timestamp
@@ -719,7 +723,7 @@ def get_current_layer():
 @app.route('/api/radar/url')
 def radar_url():
     """Return the working URL used (if any)."""
-    content, used_url = fetch_radar_image_bytes()
+    content, used_url = fetch_radar_image_bytes(current_weather_layer)
     return jsonify({'ok': bool(content), 'url': used_url})
 
 @app.route('/api/radar/last')

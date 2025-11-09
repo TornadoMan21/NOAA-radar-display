@@ -273,8 +273,14 @@ async function addOrUpdateRadarOverlay() {
     loading.textContent = 'Loading radar data...';
     loading.style.background = 'rgba(0,0,0,0.7)';
 
-    // Build URL with cache buster
-    const url = `/api/radar?t=${Date.now()}`;
+    // Get current layer from the dropdown
+    const layerSelect = document.getElementById('weather-layer');
+    const currentLayer = layerSelect ? layerSelect.value : 'reflectivity';
+    
+    // Build URL with cache buster and layer parameter
+    const url = `/api/radar?layer=${currentLayer}&t=${Date.now()}`;
+    console.log('Loading radar image with layer:', currentLayer, 'URL:', url);
+    
     const dbg = await fetch('/api/radar/debug').then(r => r.json());
     const b = dbg.bbox;
     const bounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
@@ -287,6 +293,7 @@ async function addOrUpdateRadarOverlay() {
         updateLastUpdateTime();
         updateRadarDataTime(); // Update radar data timestamp when image loads
         updateRadarTimestampHistory(); // Update timestamp history
+        console.log('Radar overlay loaded successfully for layer:', currentLayer);
     });
     radarOverlay.on('error', (e) => {
         console.error('Overlay load error', e);
