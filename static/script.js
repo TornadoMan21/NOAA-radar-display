@@ -352,8 +352,19 @@ async function loadWeatherLayers() {
         layers.forEach(layer => {
             const option = document.createElement('option');
             option.value = layer.id;
-            option.textContent = layer.name;
-            option.title = layer.description; // Tooltip with description
+            
+            // Handle unavailable layers
+            if (layer.available === false) {
+                option.textContent = `${layer.name} (Unavailable)`;
+                option.disabled = true;
+                option.title = `${layer.description}${layer.note ? '\n\nNote: ' + layer.note : ''}`;
+                option.style.color = '#999';
+                option.style.fontStyle = 'italic';
+            } else {
+                option.textContent = layer.name;
+                option.title = layer.description; // Tooltip with description
+            }
+            
             if (layer.is_current) {
                 option.selected = true;
             }
@@ -390,6 +401,15 @@ function setupLayerSelectorEventListener() {
     select.addEventListener('change', async function(e) {
         const layerId = e.target.value;
         if (!layerId) return;
+        
+        // Check if the selected option is disabled (unavailable layer)
+        const selectedOption = e.target.options[e.target.selectedIndex];
+        if (selectedOption.disabled) {
+            alert(`${selectedOption.textContent}\n\n${selectedOption.title}`);
+            // Reset to previous selection
+            await loadCurrentLayer();
+            return;
+        }
         
         console.log('Switching to weather layer:', layerId);
         

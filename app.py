@@ -683,15 +683,18 @@ def get_weather_layers():
     """Get list of available weather layers"""
     layers = []
     for layer_id, layer_config in WEATHER_LAYERS.items():
-        layers.append({
+        layer_data = {
             'id': layer_id,
             'name': layer_config['name'],
             'description': layer_config['description'],
             'service': layer_config['service'],
             'layer': layer_config['layer'],
             'legend_url': layer_config.get('legend_url'),
-            'is_current': layer_id == current_weather_layer
-        })
+            'is_current': layer_id == current_weather_layer,
+            'available': layer_config.get('available', True),
+            'note': layer_config.get('note', None)
+        }
+        layers.append(layer_data)
     return jsonify(layers)
 
 @app.route('/api/weather/layer', methods=['POST'])

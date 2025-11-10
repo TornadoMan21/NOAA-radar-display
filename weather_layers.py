@@ -36,6 +36,26 @@ WEATHER_LAYERS = {
         'service': 'conus',
         'legend_url': None,
         'dynamic_station': True
+    },
+    'base_velocity': {
+        'name': 'Base Velocity (Unavailable)',
+        'description': 'Doppler velocity data showing wind movement - currently not available through NOAA WMS services',
+        'layer': 'conus:{station}_BVEL',
+        'service': 'conus',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': False,
+        'note': 'High-Def Velocity products require direct radar data feeds not available through this service'
+    },
+    'storm_relative_velocity': {
+        'name': 'Storm Relative Velocity (Unavailable)',
+        'description': 'Storm-relative motion velocity - currently not available through NOAA WMS services',
+        'layer': 'conus:{station}_SRV',
+        'service': 'conus',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': False,
+        'note': 'Requires specialized meteorological data feeds'
     }
 }
 
