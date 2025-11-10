@@ -766,6 +766,114 @@ def radar_url():
     content, used_url = fetch_radar_image_bytes(current_weather_layer)
     return jsonify({'ok': bool(content), 'url': used_url})
 
+@app.route('/api/radar/value')
+def get_radar_value():
+    """Get radar value at specific lat/lon coordinates"""
+    try:
+        lat = float(request.args.get('lat', 0))
+        lon = float(request.args.get('lon', 0))
+        layer_id = request.args.get('layer', current_weather_layer)
+        
+        # Get the current radar image
+        content, used_url = fetch_radar_image_bytes(layer_id)
+        if not content:
+            return jsonify({'error': 'No radar data available'}), 404
+        
+        # Convert lat/lon to pixel coordinates within the radar image bounds
+        bbox = build_bbox()
+        lon_min, lat_min, lon_max, lat_max = bbox
+        
+        # Check if coordinates are within bounds
+        if not (lon_min <= lon <= lon_max and lat_min <= lat <= lat_max):
+            return jsonify({'error': 'Coordinates outside radar coverage'}), 400
+        
+        # Convert to pixel coordinates (radar images are 700x600)
+        x = int((lon - lon_min) / (lon_max - lon_min) * 700)
+        y = int((lat_max - lat) / (lat_max - lat_min) * 600)  # Flip Y coordinate
+        
+        # Load image and get pixel value
+        try:
+            from io import BytesIO
+            image = Image.open(BytesIO(content))
+            
+            # Ensure coordinates are within image bounds
+            if x < 0 or x >= image.width or y < 0 or y >= image.height:
+                return jsonify({'error': 'Coordinates outside image bounds'}), 400
+            
+            pixel = image.getpixel((x, y))
+            
+            # Handle different pixel formats
+            if isinstance(pixel, (tuple, list)):
+                if len(pixel) == 4:  # RGBA
+                    r, g, b, a = pixel
+                elif len(pixel) == 3:  # RGB
+                    r, g, b = pixel
+                    a = 255
+                else:
+                    return jsonify({'error': 'Unsupported pixel format'}), 500
+            elif isinstance(pixel, (int, float)):
+                # Grayscale - convert to RGB
+                r = g = b = int(pixel)
+                a = 255
+            else:
+                return jsonify({'error': 'Unknown pixel format'}), 500
+            
+            # Check for transparent/no-data pixels
+            if a == 0:
+                return jsonify({'value': 'No Data', 'color': [r, g, b, a]})
+            
+            # Convert color to radar value (this is approximate)
+            radar_value = estimate_radar_value_from_color(r, g, b, layer_id)
+            
+            return jsonify({
+                'value': radar_value,
+                'color': [int(r), int(g), int(b), int(a)],
+                'coordinates': {'lat': lat, 'lon': lon, 'x': x, 'y': y}
+            })
+            
+        except Exception as e:
+            return jsonify({'error': f'Image processing error: {str(e)}'}), 500
+            
+    except ValueError:
+        return jsonify({'error': 'Invalid coordinates'}), 400
+    except Exception as e:
+        app.logger.error(f"Error getting radar value: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+def estimate_radar_value_from_color(r, g, b, layer_id):
+    """Estimate radar value based on color and layer type"""
+    layer_config = WEATHER_LAYERS.get(layer_id, WEATHER_LAYERS['reflectivity'])
+    
+    # For velocity layers
+    if 'velocity' in layer_id.lower():
+        # Velocity colors typically range from green (away) to red (toward)
+        if r > 200 and g < 100 and b < 100:  # Red - toward radar
+            return f"+{20 + (r-200)/55*40:.0f} kt (toward)"
+        elif g > 200 and r < 100 and b < 100:  # Green - away from radar
+            return f"-{20 + (g-200)/55*40:.0f} kt (away)"
+        elif r > 150 and g > 150 and b < 100:  # Yellow - moderate
+            return "±15-25 kt"
+        else:
+            return "Low velocity"
+    
+    # For precipitation/reflectivity layers
+    else:
+        # Standard reflectivity color scale
+        if r < 50 and g < 50 and b < 50:  # Very dark or transparent
+            return "No precipitation"
+        elif b > 200 and r < 100 and g > 150:  # Light blue/cyan
+            return "Light rain (15-25 dBZ)"
+        elif g > 200 and r < 150 and b < 100:  # Green
+            return "Moderate rain (25-35 dBZ)"
+        elif g > 200 and r > 150 and b < 100:  # Yellow
+            return "Heavy rain (35-45 dBZ)"
+        elif r > 200 and g < 150 and b < 100:  # Red/orange
+            return "Very heavy rain (45-55 dBZ)"
+        elif r > 150 and g < 100 and b > 100:  # Purple/magenta
+            return "Extreme precipitation (55+ dBZ)"
+        else:
+            return f"Precipitation detected"
+
 @app.route('/api/radar/last')
 def radar_last_image():
     """Serve the last saved radar image if available."""

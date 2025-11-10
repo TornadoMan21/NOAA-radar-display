@@ -524,7 +524,7 @@ async function addOrUpdateRadarOverlay() {
     const b = dbg.bbox;
     const bounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
 
-    radarOverlay = L.imageOverlay(url, bounds, { opacity: 0.8, interactive: false, zIndex: 5 });
+    radarOverlay = L.imageOverlay(url, bounds, { opacity: 0.8, interactive: true, zIndex: 5 });
 
     radarOverlay.on('load', () => {
         loading.style.display = 'none';
@@ -533,6 +533,9 @@ async function addOrUpdateRadarOverlay() {
         updateRadarDataTime(); // Update radar data timestamp when image loads
         updateRadarTimestampHistory(); // Update timestamp history
         console.log('Radar overlay loaded successfully for layer:', currentLayer);
+        
+        // Initialize hover display after overlay loads
+        initializeRadarValueDisplay();
     });
     radarOverlay.on('error', (e) => {
         console.error('Overlay load error', e);
@@ -932,3 +935,96 @@ setInterval(() => {
     // Also update radar data time display if element exists
     updateRadarDataTimeDisplay();
 }, 60000);
+
+// Radar Value Hover Display
+let radarValueDisplay = null;
+let hoverTimeout = null;
+
+function initializeRadarValueDisplay() {
+    radarValueDisplay = document.getElementById('radar-value-display');
+    if (!radarValueDisplay) {
+        console.warn('Radar value display element not found');
+        return;
+    }
+    
+    console.log('Initializing radar value hover display...');
+    
+    // Remove existing listeners first
+    if (map) {
+        map.off('mousemove', handleRadarHover);
+        map.off('mouseout', hideRadarValue);
+    }
+    
+    // Add mousemove listener to the map
+    if (map) {
+        map.on('mousemove', handleRadarHover);
+        map.on('mouseout', hideRadarValue);
+        console.log('Radar value hover listeners attached to map');
+    } else {
+        console.warn('Map not found when initializing radar value display');
+    }
+}
+
+function handleRadarHover(e) {
+    if (!radarValueDisplay || !radarOverlay) return;
+    
+    clearTimeout(hoverTimeout);
+    
+    // Get lat/lon from mouse position
+    const lat = e.latlng.lat;
+    const lon = e.latlng.lng;
+    
+    // Get current layer
+    const layerSelect = document.getElementById('weather-layer');
+    const currentLayer = layerSelect ? layerSelect.value : 'reflectivity';
+    
+    // Update tooltip position relative to the map container
+    const mapContainer = document.getElementById('map');
+    const rect = mapContainer.getBoundingClientRect();
+    const x = e.containerPoint.x;
+    const y = e.containerPoint.y;
+    
+    // Position tooltip relative to the map container
+    radarValueDisplay.style.left = (x + 15) + 'px';
+    radarValueDisplay.style.top = (y - 35) + 'px';
+    radarValueDisplay.style.display = 'block';
+    radarValueDisplay.textContent = 'Loading...';
+    
+    console.log('Radar hover at:', lat.toFixed(4), lon.toFixed(4), 'Layer:', currentLayer);
+    
+    // Debounce the API call
+    hoverTimeout = setTimeout(() => {
+        fetchRadarValue(lat, lon, currentLayer);
+    }, 200);
+}
+
+function hideRadarValue() {
+    if (radarValueDisplay) {
+        radarValueDisplay.style.display = 'none';
+    }
+    clearTimeout(hoverTimeout);
+}
+
+async function fetchRadarValue(lat, lon, layer) {
+    try {
+        const response = await fetch(`/api/radar/value?lat=${lat}&lon=${lon}&layer=${layer}`);
+        const data = await response.json();
+        
+        if (response.ok && radarValueDisplay && radarValueDisplay.style.display === 'block') {
+            radarValueDisplay.textContent = data.value || 'No data';
+        } else if (data.error) {
+            if (radarValueDisplay && radarValueDisplay.style.display === 'block') {
+                radarValueDisplay.textContent = data.error === 'Coordinates outside radar coverage' ? 
+                    'Outside coverage' : 'No data';
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching radar value:', error);
+        if (radarValueDisplay && radarValueDisplay.style.display === 'block') {
+            radarValueDisplay.textContent = 'Error';
+        }
+    }
+}
+
+// Initialize radar value display when map and radar are ready
+// (This is now called from addOrUpdateRadarOverlay after overlay loads)

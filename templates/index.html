@@ -22,14 +22,6 @@
                 <div class="current-station-display">
                     <label>Current Station:</label>
                     <span class="station-info" id="current-station-info"></span>
-                    <span class="station-help">💡 Click a radar station on the map to switch</span>
-                </div>
-                <div class="layer-selector">
-                    <label for="weather-layer">Layer:</label>
-                    <select id="weather-layer">
-                        <option value="">Loading...</option>
-                    </select>
-                    <span class="current-layer" id="current-layer-info"></span>
                 </div>
             </div>
             <div class="status" id="status">
@@ -39,32 +31,50 @@
         </header>
 
         <main>
-            <div class="radar-container">
-                <div class="radar-wrapper">
-                    <div id="map"></div>
-                    <div class="loading" id="loading">Loading radar data...</div>
+            <div class="radar-wrapper">
+                <div id="map"></div>
+                <div class="loading" id="loading">Loading radar data...</div>
+                <div id="radar-value-display" class="radar-value-tooltip"></div>
+            </div>
+            
+            <div class="layer-selector">
+                <label for="weather-layer">Weather Layer:</label>
+                <select id="weather-layer">
+                    <option value="">Loading...</option>
+                </select>
+                <span class="current-layer" id="current-layer-info"></span>
+            </div>
+
+            <div class="legend-panel">
+                <h3>🎨 Radar Legend</h3>
+                <div class="legend">
+                    <div class="legend-item"><span class="color" style="background: #40ffff;"></span> Light Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #00d800;"></span> Moderate Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ffff00;"></span> Heavy Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ff0000;"></span> Very Heavy Rain</div>
+                    <div class="legend-item"><span class="color" style="background: #ff00ff;"></span> Severe Weather</div>
                 </div>
-                
-                <div class="controls">
-                    <button onclick="refreshRadar()" class="btn-refresh">
-                        🔄 Refresh Radar
-                    </button>
-                    <div class="last-update">
-                        Last updated: <span id="last-update">Never</span>
-                    </div>
-                    <div class="radar-data-time">
-                        Radar data from: <span id="radar-data-time">Loading...</span>
-                    </div>
-                    <div class="radar-timestamp-history" id="radar-timestamp-history">
-                        <div class="history-title">Recent Radar Updates:</div>
-                        <div class="history-content" id="history-content">Loading history...</div>
-                    </div>
-                    <div class="countdown" id="countdown"></div>
-                    <label class="auto-refresh">
-                        <input type="checkbox" id="auto-refresh" checked>
-                        Auto-refresh every 1 min (learning...)
-                    </label>
+            </div>
+            
+            <div class="controls">
+                <button onclick="refreshRadar()" class="btn-refresh">
+                    🔄 Refresh Radar
+                </button>
+                <div class="last-update">
+                    Last updated: <span id="last-update">Never</span>
                 </div>
+                <div class="radar-data-time">
+                    Radar data from: <span id="radar-data-time">Loading...</span>
+                </div>
+                <div class="radar-timestamp-history" id="radar-timestamp-history">
+                    <div class="history-title">Recent Radar Updates:</div>
+                    <div class="history-content" id="history-content">Loading history...</div>
+                </div>
+                <div class="countdown" id="countdown"></div>
+                <label class="auto-refresh">
+                    <input type="checkbox" id="auto-refresh" checked>
+                    Auto-refresh every 1 min (learning...)
+                </label>
             </div>
 
             <div class="info-panel">
@@ -75,15 +85,6 @@
                     <li><strong>Update Frequency:</strong> Every 5 minutes</li>
                     <li><strong>Coverage:</strong> ~230 mile radius</li>
                 </ul>
-
-                <h3>🎨 Radar Legend</h3>
-                <div class="legend">
-                    <div class="legend-item"><span class="color" style="background: #40ffff;"></span> Light Rain</div>
-                    <div class="legend-item"><span class="color" style="background: #00d800;"></span> Moderate Rain</div>
-                    <div class="legend-item"><span class="color" style="background: #ffff00;"></span> Heavy Rain</div>
-                    <div class="legend-item"><span class="color" style="background: #ff0000;"></span> Very Heavy Rain</div>
-                    <div class="legend-item"><span class="color" style="background: #ff00ff;"></span> Severe Weather</div>
-                </div>
             </div>
         </main>
 

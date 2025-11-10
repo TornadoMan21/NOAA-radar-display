@@ -65,7 +65,7 @@ header h1 {
 
 .station-info {
     font-size: 0.9em;
-    color: white;
+    color: black;
     font-weight: 600;
     min-width: 150px;
 }
@@ -158,13 +158,6 @@ main {
     padding: 30px;
 }
 
-.radar-container {
-    background: #f7fafc;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 30px;
-}
-
 .radar-wrapper {
     position: relative;
     background: #000;
@@ -174,6 +167,7 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 20px;
 }
 
 #map {
@@ -481,4 +475,67 @@ footer {
     .station-help {
         display: none;
     }
+}
+
+/* Radar Value Tooltip */
+.radar-value-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: none;
+    border: 2px solid #4299e1;
+    transform: translateX(-50%);
+}
+
+/* Move layer selector below map */
+.layer-selector {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.layer-selector label {
+    font-weight: 600;
+    margin-right: 10px;
+    color: #2d3748;
+}
+
+.layer-selector select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    background: white;
+    margin-right: 15px;
+    min-width: 300px;
+    font-size: 14px;
+}
+
+.layer-selector .current-layer {
+    color: #4a5568;
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+.legend-panel {
+    background: #f7fafc;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid #e2e8f0;
+}
+
+.legend-panel h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2em;
 }
