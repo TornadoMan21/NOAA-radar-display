@@ -206,6 +206,8 @@ def build_wms_url(layer_id=None):
     # Select base URL based on service
     if layer_config['service'] == 'mrms':
         base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
+    elif layer_config['service'] == 'station-specific':
+        base = f"https://opengeo.ncep.noaa.gov/geoserver/{RADAR_STATION.lower()}/ows"
     else:  # conus
         base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
     
@@ -213,6 +215,7 @@ def build_wms_url(layer_id=None):
     layer_name = layer_config['layer']
     if layer_config.get('dynamic_station', False):
         layer_name = layer_name.replace('{station}', RADAR_STATION)
+        layer_name = layer_name.replace('{station_lower}', RADAR_STATION.lower())
     
     # Simplified parameters - remove TIME and format_options that might cause issues
     params = {
@@ -244,6 +247,8 @@ def build_wms_url_130(layer_id=None):
     # Select base URL based on service
     if layer_config['service'] == 'mrms':
         base = "https://opengeo.ncep.noaa.gov/geoserver/mrms/ows"
+    elif layer_config['service'] == 'station-specific':
+        base = f"https://opengeo.ncep.noaa.gov/geoserver/{RADAR_STATION.lower()}/ows"
     else:  # conus
         base = "https://opengeo.ncep.noaa.gov/geoserver/conus/ows"
     
@@ -251,6 +256,7 @@ def build_wms_url_130(layer_id=None):
     layer_name = layer_config['layer']
     if layer_config.get('dynamic_station', False):
         layer_name = layer_name.replace('{station}', RADAR_STATION)
+        layer_name = layer_name.replace('{station_lower}', RADAR_STATION.lower())
     
     # Simplified parameters
     params = {
@@ -310,11 +316,31 @@ def _try_fetch(url: str, session: requests.Session) -> bytes | None:
 
 def fetch_radar_image_bytes(layer_id=None) -> tuple[bytes | None, str | None]:
     session = requests.Session()
-    candidates = [
-        ("mrms_wms_111", build_wms_url(layer_id)),
-        ("mrms_wms_130", build_wms_url_130(layer_id)),
-        ("conus_bref", build_conus_bref_url()),
-    ]
+    
+    # Check if this is a station-specific layer like velocity
+    if layer_id and layer_id in WEATHER_LAYERS:
+        layer_config = WEATHER_LAYERS[layer_id]
+        if layer_config.get('service') == 'station-specific':
+            # For station-specific layers, only try the proper station-specific URLs
+            candidates = [
+                ("station_wms_111", build_wms_url(layer_id)),
+                ("station_wms_130", build_wms_url_130(layer_id)),
+            ]
+        else:
+            # For regular layers, use the full fallback chain
+            candidates = [
+                ("mrms_wms_111", build_wms_url(layer_id)),
+                ("mrms_wms_130", build_wms_url_130(layer_id)),
+                ("conus_bref", build_conus_bref_url()),
+            ]
+    else:
+        # Default fallback chain for unknown layers
+        candidates = [
+            ("mrms_wms_111", build_wms_url(layer_id)),
+            ("mrms_wms_130", build_wms_url_130(layer_id)),
+            ("conus_bref", build_conus_bref_url()),
+        ]
+    
     for name, url in candidates:
         content = _try_fetch(url, session)
         if content:

@@ -38,14 +38,49 @@ WEATHER_LAYERS = {
         'dynamic_station': True
     },
     'super_res_velocity': {
-        'name': 'Super Resolution Base Radial Velocity (Unavailable)',
-        'description': 'High-resolution Doppler velocity data showing wind movement and storm rotation - currently not available through NOAA WMS services',
-        'layer': 'conus:{station}_SR_BVEL',
-        'service': 'conus',
+        'name': 'Super Resolution Base Radial Velocity',
+        'description': 'High-resolution Doppler velocity data showing wind movement and storm rotation',
+        'layer': '{station_lower}_sr_bvel',
+        'service': 'station-specific',
         'legend_url': None,
         'dynamic_station': True,
-        'available': False,
-        'note': 'Super Resolution velocity products require specialized radar data feeds not available through this WMS service'
+        'available': True
+    },
+    'super_res_reflectivity': {
+        'name': 'Super Resolution Base Reflectivity',
+        'description': 'High-resolution base reflectivity from individual radar stations',
+        'layer': '{station_lower}_sr_bref',
+        'service': 'station-specific',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': True
+    },
+    'digital_hybrid_reflectivity': {
+        'name': 'Digital Hybrid Scan Reflectivity',
+        'description': 'Composite reflectivity from multiple elevation scans',
+        'layer': '{station_lower}_bdhc',
+        'service': 'station-specific',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': True
+    },
+    'storm_total_accumulation': {
+        'name': 'Digital Storm Total Accumulation',
+        'description': 'Total precipitation accumulation for current storm event',
+        'layer': '{station_lower}_bdsa',
+        'service': 'station-specific',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': True
+    },
+    'one_hour_accumulation': {
+        'name': 'One Hour Accumulation',
+        'description': 'Precipitation accumulation over the past hour',
+        'layer': '{station_lower}_boha',
+        'service': 'station-specific',
+        'legend_url': None,
+        'dynamic_station': True,
+        'available': True
     }
 }
 
