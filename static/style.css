@@ -296,6 +296,14 @@ main {
     user-select: none;
 }
 
+.hover-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
 .info-panel {
     background: #edf2f7;
     padding: 25px;
@@ -475,6 +483,55 @@ footer {
     .station-help {
         display: none;
     }
+}
+
+/* Force cursor override for debugging */
+.force-cursor * {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+.force-cursor {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+/* Bullseye cursor for hover mode */
+.bullseye-cursor {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+.test-cursor {
+    cursor: crosshair !important;
+}
+
+#map.bullseye-cursor {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+#map.test-cursor {
+    cursor: crosshair !important;
+}
+
+#map.force-cursor {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+/* Override Leaflet cursor styles when bullseye is active */
+.bullseye-cursor .leaflet-container,
+.bullseye-cursor .leaflet-zoom-box {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+.test-cursor .leaflet-container,
+.test-cursor .leaflet-zoom-box {
+    cursor: crosshair !important;
+}
+
+.leaflet-container.bullseye-cursor {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair !important;
+}
+
+.leaflet-container.test-cursor {
+    cursor: crosshair !important;
 }
 
 /* Radar Value Tooltip */

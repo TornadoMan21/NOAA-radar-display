@@ -536,6 +536,9 @@ async function addOrUpdateRadarOverlay() {
         
         // Initialize hover display after overlay loads
         initializeRadarValueDisplay();
+        
+        // Update cursor after everything is loaded
+        setTimeout(updateCursor, 100);
     });
     radarOverlay.on('error', (e) => {
         console.error('Overlay load error', e);
@@ -939,6 +942,7 @@ setInterval(() => {
 // Radar Value Hover Display
 let radarValueDisplay = null;
 let hoverTimeout = null;
+let hoverEnabled = true;
 
 function initializeRadarValueDisplay() {
     radarValueDisplay = document.getElementById('radar-value-display');
@@ -949,6 +953,14 @@ function initializeRadarValueDisplay() {
     
     console.log('Initializing radar value hover display...');
     
+    // Initialize hover toggle
+    const hoverToggle = document.getElementById('hover-toggle');
+    if (hoverToggle) {
+        hoverEnabled = hoverToggle.checked;
+        hoverToggle.addEventListener('change', toggleHoverFeature);
+        updateCursor();
+    }
+    
     // Remove existing listeners first
     if (map) {
         map.off('mousemove', handleRadarHover);
@@ -956,7 +968,7 @@ function initializeRadarValueDisplay() {
     }
     
     // Add mousemove listener to the map
-    if (map) {
+    if (map && hoverEnabled) {
         map.on('mousemove', handleRadarHover);
         map.on('mouseout', hideRadarValue);
         console.log('Radar value hover listeners attached to map');
@@ -965,8 +977,120 @@ function initializeRadarValueDisplay() {
     }
 }
 
+function toggleHoverFeature() {
+    const hoverToggle = document.getElementById('hover-toggle');
+    hoverEnabled = hoverToggle.checked;
+    
+    if (map) {
+        map.off('mousemove', handleRadarHover);
+        map.off('mouseout', hideRadarValue);
+        
+        if (hoverEnabled) {
+            map.on('mousemove', handleRadarHover);
+            map.on('mouseout', hideRadarValue);
+            console.log('Radar hover enabled');
+        } else {
+            hideRadarValue();
+            console.log('Radar hover disabled');
+        }
+    }
+    
+    updateCursor();
+}
+
+function updateCursor() {
+    console.log('=== CURSOR UPDATE START ===');
+    console.log('Hover enabled:', hoverEnabled);
+    
+    const mapContainer = document.getElementById('map');
+    const leafletContainer = document.querySelector('.leaflet-container');
+    const body = document.body;
+    
+    console.log('Map container found:', !!mapContainer);
+    console.log('Leaflet container found:', !!leafletContainer);
+    
+    // Use bullseye cursor with 2 circles and crosshairs stopping at inner circle
+    const bullseyeCursor = "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZyBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+CiAgICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iNiIvPgogICAgPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjEwIiB5Mj0iMTYiLz4KICAgIDxsaW5lIHgxPSIyMiIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIvPgogICAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTAiLz4KICAgIDxsaW5lIHgxPSIxNiIgeTE9IjIyIiB4Mj0iMTYiIHkyPSIyOCIvPgogIDwvZz4KPC9zdmc+') 16 16, crosshair";
+    
+    if (hoverEnabled) {
+        console.log('ENABLING BULLSEYE CURSOR');
+        
+        // Apply bullseye cursor to body
+        body.style.cursor = bullseyeCursor;
+        body.classList.add('bullseye-cursor');
+        console.log('Applied bullseye cursor to body');
+        
+        // Apply to map container with multiple methods
+        if (mapContainer) {
+            mapContainer.style.setProperty('cursor', bullseyeCursor, 'important');
+            mapContainer.classList.add('bullseye-cursor', 'force-cursor');
+            console.log('Applied bullseye cursor to map container');
+        }
+        
+        // Apply to leaflet container
+        if (leafletContainer) {
+            leafletContainer.style.setProperty('cursor', bullseyeCursor, 'important');
+            leafletContainer.classList.add('bullseye-cursor', 'force-cursor');
+            console.log('Applied bullseye cursor to leaflet container');
+        }
+        
+        // Apply to ALL elements inside the map
+        if (mapContainer) {
+            const allChildren = mapContainer.querySelectorAll('*');
+            console.log(`Applying bullseye cursor to ${allChildren.length} child elements`);
+            allChildren.forEach((element, index) => {
+                element.style.setProperty('cursor', bullseyeCursor, 'important');
+                element.classList.add('bullseye-cursor');
+                if (index < 5) console.log(`Applied bullseye to element ${index}:`, element.tagName, element.className);
+            });
+        }
+        
+        // Force a style update
+        if (mapContainer) {
+            mapContainer.offsetHeight; // Force reflow
+        }
+        
+        // Try to override any Leaflet event handlers that might be setting cursor
+        setTimeout(() => {
+            console.log('Delayed bullseye cursor application...');
+            if (mapContainer) {
+                mapContainer.style.setProperty('cursor', bullseyeCursor, 'important');
+            }
+            if (leafletContainer) {
+                leafletContainer.style.setProperty('cursor', bullseyeCursor, 'important');
+            }
+        }, 100);
+        
+    } else {
+        console.log('DISABLING CURSOR');
+        
+        // Remove from body
+        body.style.cursor = "";
+        body.classList.remove('force-cursor', 'bullseye-cursor');
+        
+        // Remove from containers
+        if (mapContainer) {
+            mapContainer.style.cursor = "";
+            mapContainer.classList.remove('test-cursor', 'force-cursor', 'bullseye-cursor');
+            // Remove from all children
+            const allChildren = mapContainer.querySelectorAll('*');
+            allChildren.forEach(element => {
+                element.style.cursor = "";
+                element.classList.remove('force-cursor', 'bullseye-cursor');
+            });
+        }
+        
+        if (leafletContainer) {
+            leafletContainer.style.cursor = "";
+            leafletContainer.classList.remove('test-cursor', 'force-cursor', 'bullseye-cursor');
+        }
+    }
+    
+    console.log('=== CURSOR UPDATE END ===');
+}
+
 function handleRadarHover(e) {
-    if (!radarValueDisplay || !radarOverlay) return;
+    if (!radarValueDisplay || !radarOverlay || !hoverEnabled) return;
     
     clearTimeout(hoverTimeout);
     
@@ -984,9 +1108,27 @@ function handleRadarHover(e) {
     const x = e.containerPoint.x;
     const y = e.containerPoint.y;
     
-    // Position tooltip relative to the map container
-    radarValueDisplay.style.left = (x + 15) + 'px';
-    radarValueDisplay.style.top = (y - 35) + 'px';
+    // Smart positioning to avoid blocking cursor and stay in bounds
+    // Default offset: 40px right and 60px up from cursor
+    let offsetX = 40;
+    let offsetY = -60;
+    
+    // Check if tooltip would go off the right edge of map
+    const tooltipWidth = 200; // Approximate width of tooltip
+    if (x + offsetX + tooltipWidth > mapContainer.offsetWidth) {
+        // Position to the left of cursor instead
+        offsetX = -tooltipWidth - 20;
+    }
+    
+    // Check if tooltip would go above the top of map
+    if (y + offsetY < 0) {
+        // Position below cursor instead
+        offsetY = 30;
+    }
+    
+    // Position tooltip with calculated offset
+    radarValueDisplay.style.left = (x + offsetX) + 'px';
+    radarValueDisplay.style.top = (y + offsetY) + 'px';
     radarValueDisplay.style.display = 'block';
     radarValueDisplay.textContent = 'Loading...';
     
