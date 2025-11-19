@@ -217,6 +217,12 @@ def build_wms_url(layer_id=None):
         layer_name = layer_name.replace('{station}', RADAR_STATION)
         layer_name = layer_name.replace('{station_lower}', RADAR_STATION.lower())
     
+    # Use ultra-high resolution for high-res layers, standard high-res for others
+    if layer_config.get('high_res', False):
+        width, height = "2048", "1728"  # Ultra-high resolution for super-res and hybrid layers
+    else:
+        width, height = "1400", "1200"  # Standard high resolution
+    
     # Simplified parameters - remove TIME and format_options that might cause issues
     params = {
         "service": "WMS",
@@ -225,8 +231,8 @@ def build_wms_url(layer_id=None):
         "layers": layer_name,
         "format": "image/png",
         "transparent": "true",
-        "width": "700",
-        "height": "600",
+        "width": width,
+        "height": height,
         "srs": "EPSG:4326",
         "bbox": bbox,
         "bgcolor": "0x00000000"
@@ -258,6 +264,12 @@ def build_wms_url_130(layer_id=None):
         layer_name = layer_name.replace('{station}', RADAR_STATION)
         layer_name = layer_name.replace('{station_lower}', RADAR_STATION.lower())
     
+    # Use ultra-high resolution for high-res layers, standard high-res for others
+    if layer_config.get('high_res', False):
+        width, height = "2048", "1728"  # Ultra-high resolution for super-res and hybrid layers
+    else:
+        width, height = "1400", "1200"  # Standard high resolution
+    
     # Simplified parameters
     params = {
         "service": "WMS",
@@ -266,8 +278,8 @@ def build_wms_url_130(layer_id=None):
         "layers": layer_name,
         "format": "image/png",
         "transparent": "true",
-        "width": "700",
-        "height": "600",
+        "width": width,
+        "height": height,
         "crs": "EPSG:4326",
         "bbox": bbox,
         "bgcolor": "0x00000000"
@@ -286,8 +298,8 @@ def build_conus_bref_url():
         "layers": "conus:conus_bref_qcd",
         "format": "image/png",
         "transparent": "true",
-        "width": "700",
-        "height": "600",
+        "width": "1400",
+        "height": "1200",
         "srs": "EPSG:4326",
         "bbox": bbox,
         "bgcolor": "0x00000000",
@@ -787,9 +799,16 @@ def get_radar_value():
         if not (lon_min <= lon <= lon_max and lat_min <= lat <= lat_max):
             return jsonify({'error': 'Coordinates outside radar coverage'}), 400
         
-        # Convert to pixel coordinates (radar images are 700x600)
-        x = int((lon - lon_min) / (lon_max - lon_min) * 700)
-        y = int((lat_max - lat) / (lat_max - lat_min) * 600)  # Flip Y coordinate
+        # Determine image dimensions based on layer type
+        layer_config = WEATHER_LAYERS.get(layer_id, WEATHER_LAYERS['reflectivity'])
+        if layer_config.get('high_res', False):
+            img_width, img_height = 2048, 1728  # Ultra-high resolution
+        else:
+            img_width, img_height = 1400, 1200  # Standard high resolution
+        
+        # Convert to pixel coordinates
+        x = int((lon - lon_min) / (lon_max - lon_min) * img_width)
+        y = int((lat_max - lat) / (lat_max - lat_min) * img_height)  # Flip Y coordinate
         
         # Load image and get pixel value
         try:

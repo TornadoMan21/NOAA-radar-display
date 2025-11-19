@@ -44,7 +44,8 @@ WEATHER_LAYERS = {
         'service': 'station-specific',
         'legend_url': None,
         'dynamic_station': True,
-        'available': True
+        'available': True,
+        'high_res': True
     },
     'super_res_reflectivity': {
         'name': 'Super Resolution Base Reflectivity',
@@ -53,7 +54,8 @@ WEATHER_LAYERS = {
         'service': 'station-specific',
         'legend_url': None,
         'dynamic_station': True,
-        'available': True
+        'available': True,
+        'high_res': True
     },
     'digital_hybrid_reflectivity': {
         'name': 'Digital Hybrid Scan Reflectivity',
@@ -62,7 +64,8 @@ WEATHER_LAYERS = {
         'service': 'station-specific',
         'legend_url': None,
         'dynamic_station': True,
-        'available': True
+        'available': True,
+        'high_res': True
     },
     'storm_total_accumulation': {
         'name': 'Digital Storm Total Accumulation',
